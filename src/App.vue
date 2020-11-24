@@ -1,28 +1,68 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <AddExpenseView v-on:add-expense="addExpense" />
+    <VueGoodTable :columns="columns"
+      :rows="expenses"/>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+  import AddExpenseView from './views/AddExpenseView.vue';
+  import '@mdi/font/css/materialdesignicons.css';
+  import 'vue-good-table/dist/vue-good-table.css'
+  import { VueGoodTable } from 'vue-good-table';
+  import {format} from 'date-fns'
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
+ 
+// add to component
+
+
+  export default {
+    name: 'App',
+    data() {
+      return {
+        expenses: [],
+        columns: [
+        {
+          label: 'Expense',
+          field: 'title',
+        },
+        {
+          label: 'Currency',
+          field: 'currency',
+        },
+        {
+          label: 'Category',
+          field: 'category',
+        },
+        {
+          label: 'Amount',
+          field: 'amountValue',
+        },
+        {
+          label: 'Date',
+          field: 'expenseDate',
+          type: 'Date',
+          dateInputFormat: 'yyyy-MM-dd',
+          dateOutputFormat: 'MMM do yy',
+        }
+      ]
+      }
+    },
+    components: {
+      AddExpenseView,
+      VueGoodTable
+    },
+    methods: {
+      addExpense(expense) {
+        expense.expenseDate = format(expense.expenseDate, 'yyyy-MM-dd');
+        this.expenses.push(expense);
+        // console.log(new Date(expense.expenseDate));
+      }
+    }
   }
-}
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+
 </style>

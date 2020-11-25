@@ -3,11 +3,11 @@
         <b-field label="Expense title" :label-position="labelPosition">
             <b-input v-model="title"></b-input>
         </b-field>
-        <b-field label="Currency" :label-position="labelPosition">
+        <!-- <b-field label="Currency" :label-position="labelPosition">
             <b-autocomplete v-model="currency" :open-on-focus="openOnFocus" :data="filteredCurrencyObj"
                 :clearable="true" @select="option => (selected = option)">
             </b-autocomplete>
-        </b-field>
+        </b-field> -->
         <b-field label="Category" :label-position="labelPosition">
             <b-autocomplete v-model="category" :open-on-focus="openOnFocus" :data="filteredCategoryObj"
                 :clearable="true" @select="option => (selected = option)">
@@ -31,7 +31,7 @@
 </template>
 
 <script>
-    import {currencyCodes} from '../assets/currencies';
+    // import {currencyCodes} from '../assets/currencies';
     import {expenseCategories} from '../assets/expenseCategories';
 
     export default {
@@ -40,7 +40,7 @@
             return {
                 labelPosition: 'on-border',
                 amountValue: 0,
-                currencyCodes,
+                // currencyCodes,
                 openOnFocus: true,
                 currency: 'SGD',
                 category: 'Food',
@@ -72,15 +72,15 @@
             }
         },
         computed: {
-            filteredCurrencyObj() {
-                return currencyCodes.filter(option => {
-                    return (
-                        option
-                        .toLowerCase()
-                        .indexOf(this.currency.toLowerCase()) >= 0
-                    )
-                });
-            },
+            // filteredCurrencyObj() {
+            //     return currencyCodes.filter(option => {
+            //         return (
+            //             option
+            //             .toLowerCase()
+            //             .indexOf(this.currency.toLowerCase()) >= 0
+            //         )
+            //     });
+            // },
             filteredCategoryObj() {
                 return expenseCategories.filter(option => {
                     return (

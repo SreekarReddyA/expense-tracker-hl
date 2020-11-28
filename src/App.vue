@@ -118,6 +118,18 @@
             // VueGoodTable,
             GenerateRandomExpenses
         },
+        created() {
+            this.expenses = [...JSON.parse(localStorage.getItem('tracker-expenses'))];
+            if (this.expenses == null) {
+                this.expenses = [];
+            } else {
+                this.expenses.forEach((eachExpense, expenseIndex) => {
+                    this.expenses[expenseIndex].expenseDate = new Date(eachExpense.expenseDate);
+                });
+            }
+            // console.log('in created');
+            // console.log(this.expenses);
+        },
         mounted() {
             if (this.expenses.length > 0) {
                 this.createPieChart('pie-chart', this.pieChartData);
@@ -129,6 +141,7 @@
                 if ((column.field == 'id')) {
                     const expenseRemover = eachExpense => eachExpense.id !== row.id;
                     this.expenses = this.expenses.filter(expenseRemover);
+                    localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses));
                     this.clickedExpenses = this.clickedExpenses.filter(expenseRemover);
                     this.updatePieChart(this.pieChartObject, this.expenses);
                 }
@@ -369,9 +382,8 @@
             },
             addExpense(expense) {
                 expense.expenseDateString = format(expense.expenseDate, 'yyyy-MM-dd');
-                this
-                    .expenses
-                    .push(expense);
+                this.expenses.push(expense);
+                localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses))
                 this.updatePieChart(this.pieChartObject, this.expenses);
                 this.updateLineChart(this.lineChartObject, this.expenses);
             },
@@ -379,6 +391,7 @@
                 this
                     .expenses
                     .push(...randomExpenses);
+                    localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses));
                 this.updatePieChart(this.pieChartObject, this.expenses);
                 this.updateLineChart(this.lineChartObject, this.expenses);
             }

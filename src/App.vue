@@ -1,8 +1,4 @@
 <template>
-    <!-- <div id="app" class="container">
-        
-    </div> -->
-
     <div class="columns">
         <div class="column">
             <div class="columns card" style="margin: 2%">
@@ -14,133 +10,45 @@
                 </div>
             </div>
             <div v-show="expenses.length > 0" class="card" style="margin-left: 2%; margin-right: 2%; padding: 3%">
-                <b-table default-sort="expenseDate" v-if="expenses.length > 0" :show-detail-icon="false" per-page="10"
-                    detailed pagination-rounded :data="expenses" v-on:cellclick="deleteExpense" paginated>
-                    <b-table-column label="Expense" field="title" sortable v-slot="props">
-                        <span>
-
-                            {{props.row.title}}
-                        </span>
-                    </b-table-column>
-                    <b-table-column label="Category" field="category" sortable v-slot="props">
-                        <span>
-                            {{props.row.category}}
-                        </span>
-                    </b-table-column>
-                    <b-table-column label="Amount (S$)" field="amountValue" sortable v-slot="props">
-                        <div style="text-align: right"><span>
-                                {{new Intl.NumberFormat('en-US').format(props.row.amountValue)}}
-                            </span></div>
-                    </b-table-column>
-                    <b-table-column label="Date" field="expenseDateString" sortable v-slot="props">
-                        <span>
-                            {{props.row.expenseDateString}}
-                        </span>
-                    </b-table-column>
-                    <b-table-column field="id">
-                        <span>
-                            <b-icon icon="trash-can-outline" size="is-small"></b-icon>
-                        </span>
-                    </b-table-column>
-
-                </b-table>
+                <ExpensesTable v-bind:expenses="expenses" v-bind:deleteExpense="deleteExpense"/>
             </div>
             <div class="card" v-show="expenses.length > 0"
                 style="margin-left: 2%; margin-right: 2%; margin-top: 2%; padding: 3%">
-                <div class="columns">
-                    <div class="column is-three-quarters">
-                        <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
-                            <b-datepicker v-if="expenses.length > 0" v-model="lineChartMonth"
-                                v-on:change-month="changeLineMonth" type="month" icon="calendar-today" trap-focus>
-                            </b-datepicker>
-                        </b-field>
-                    </div>
-                    <div class="column is-one-quarter">
-                        <b-button v-on:click="clearLineChartMonth">
-                        <b-icon icon="close" 
-                        size="is-small" >
-                        </b-icon>
-                        </b-button>
-                    </div>
-                </div>
+                <MonthPicker v-bind:expenses="expenses" v-bind:month="lineChartMonth" v-bind:changeMonth="changeLineMonth" 
+                    v-bind:clearMonth="clearLineChartMonth"/>
                 <canvas id="line-chart"></canvas>
             </div>
         </div>
         <div class="column">
             <div v-show="expenses.length > 0" class="card" style="padding: 3%; margin-top: 2%">
-                <div class="columns">
-                    <div class="column is-three-quarters">
-                        <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
-                            <b-datepicker v-if="expenses.length > 0" v-model="pieChartMonth" v-on:change-month="changePieMonth"
-                                type="month" icon="calendar-today" trap-focus></b-datepicker>
-                        </b-field>
-                    </div>
-                    <div class="column is-one-quarter">
-                        <b-button v-on:click="clearPieChartMonth">
-                        <b-icon icon="close" 
-                        size="is-small" >
-                        </b-icon>
-                        </b-button>
-                    </div>
-                </div>
+                <MonthPicker v-bind:expenses="expenses" v-bind:month="pieChartMonth" v-bind:changeMonth="changePieMonth" 
+                    v-bind:clearMonth="clearPieChartMonth"/>
                 <canvas v-show="expenses.length > 0" id="pie-chart"></canvas>
-                <b-table default-sort="expenseDate" v-if="clickedExpenses.length > 0" :data="clickedExpenses"
-                    per-page="5" detailed pagination-rounded :show-detail-icon="false" v-on:cellclick="deleteExpense"
-                    paginated>
-                    <b-table-column label="Expense" field="title" sortable v-slot="props">
-                        <span>
-
-                            {{props.row.title}}
-                        </span>
-                    </b-table-column>
-                    <b-table-column label="Category" field="category" sortable v-slot="props">
-                        <span>
-                            {{props.row.category}}
-                        </span>
-                    </b-table-column>
-                    <b-table-column label="Amount (S$)" field="amountValue" sortable v-slot="props">
-                        <div style="text-align: right"><span>
-                                {{new Intl.NumberFormat('en-US').format(props.row.amountValue)}}
-                            </span>
-                        </div>
-                    </b-table-column>
-                    <b-table-column label="Date" sortable field="expenseDate" v-slot="props">
-                        <span>
-                            {{props.row.expenseDateString}}
-                        </span>
-                    </b-table-column>
-                    <b-table-column field="id">
-                        <span>
-                            <b-icon icon="trash-can-outline" size="is-small"></b-icon>
-                        </span>
-                    </b-table-column>
-                </b-table>
-                <!-- <VueGoodTable :columns="columns" :rows="" /> -->
+                <ExpensesTable v-bind:expenses="clickedExpenses" v-bind:deleteExpense="deleteExpense"/>
             </div>
         </div>
     </div>
-
 </template>
 
 <script>
     import AddExpense from './components/AddExpense.vue';
     import '@mdi/font/css/materialdesignicons.css';
     import 'vue-good-table/dist/vue-good-table.css';
-    // import {     VueGoodTable } from 'vue-good-table';
-    import {
-        format
-    } from 'date-fns';
+    import MonthPicker from './components/MonthPicker';
+    import {format} from 'date-fns';
     import GenerateRandomExpenses from './components/GenerateRandomExpenses';
     import pieChartData from './chart-data.js';
     import Chart from 'chart.js';
     import _ from 'underscore';
     import randomColor from 'randomcolor';
+    import ExpensesTable from './components/ExpensesTable';
 
     export default {
         name: 'App',
         components: {
             AddExpense,
-            // VueGoodTable,
+            MonthPicker,
+            ExpensesTable,
             GenerateRandomExpenses
         },
         created() {

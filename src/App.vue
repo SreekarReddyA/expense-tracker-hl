@@ -10,6 +10,7 @@
     import _ from 'underscore';
     import randomColor from 'randomcolor';
     import ExpensesTable from './components/ExpensesTable';
+    import {lineChartOptions} from './services/chartServices';
 
     export default {
         name: 'App',
@@ -18,8 +19,20 @@
             ExpensesTable,
             GenerateRandomExpenses
         },
+        data() {
+            return {
+                expenses: [],
+                clickedExpenses: [],
+                pieChartObject: null,
+                categoriesArray: [],
+                pieChartMonth: null,
+                lineChartObject: null,
+                globalColors: [],
+                lineChartMonth: null
+            }
+        },
         created() {
-            this.expenses = [...JSON.parse(localStorage.getItem('tracker-expenses'))];
+            this.expenses = JSON.parse(localStorage.getItem('tracker-expenses'));
             if (this.expenses == null) {
                 this.expenses = [];
             } else {
@@ -39,6 +52,11 @@
                 this.pieChartMonth = null;
                 this.changePieMonth(this.pieChartMonth);
             },
+            compareDateWithoutTime(date1, date2) {
+                date1.setHours(0,0,0,0);
+                date2.setHours(0,0,0,0);
+                return date1.getTime() === date2.getTime();
+            },
             clearLineChartMonth(clickEvent) {
                 this.lineChartMonth = null;
                 this.changeLineMonth(this.lineChartMonth);
@@ -51,74 +69,6 @@
                     this.clickedExpenses = this.clickedExpenses.filter(expenseRemover);
                     this.updatePieChart(this.pieChartObject, this.expenses);
                 }
-            },
-            getLineChartData() {
-                let expenseDates;
-                if (this.lineChartMonth) {
-                    expenseDates = [];
-                    let newExpenseDate = new Date(this.lineChartMonth.getTime());
-                    while (this.lineChartMonth.getMonth() === newExpenseDate.getMonth()) {
-                        expenseDates.push(new Date(newExpenseDate.getTime()))
-                        newExpenseDate.setDate(newExpenseDate.getDate() + 1);
-                    }
-                } else {
-                    expenseDates = this.expenses.map(eachExpense => eachExpense.expenseDate);
-                }
-
-                let minimumDate = _.min(expenseDates);
-                let maximumDate = _.max(expenseDates);
-                let getDaysArray = (start, end) => {
-                    let arr = [];
-                    for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-                        arr.push(new Date(dt));
-                    }
-                    return arr;
-                };
-                let dateLabels = getDaysArray(minimumDate, maximumDate);
-
-                // let categoricalExpenses = [];
-                let lineChartDatasetArray = [];
-
-                this.categoriesArray.forEach((eachCategory, catIndex) => {
-                    let expensesForDates = [];
-                    dateLabels.forEach(eachDate => {
-                        let dateAndCategoryFilter = eachExpense => {
-                            return eachExpense.category === eachCategory && eachExpense.expenseDate
-                                .getTime() === eachDate.getTime();
-                        }
-                        let dateAndCategoryExpenseReducer = (initial, newExpense) => (initial +
-                            newExpense.amountValue);
-                        let filteredExpenses = this.expenses.filter(dateAndCategoryFilter);
-                        expensesForDates.push(filteredExpenses.reduce(dateAndCategoryExpenseReducer,
-                        0));
-                    });
-                    lineChartDatasetArray.push({
-                        label: eachCategory,
-                        backgroundColor: this.globalColors[catIndex],
-                        borderColor: this.globalColors[catIndex],
-                        data: [...expensesForDates],
-                        fill: false,
-                        lineTension: 0,
-                        cubicInterpolationMode: 'linear',
-                        hidden: true
-                    });
-
-                });
-                // const randomOverallColor = randomColor();
-                lineChartDatasetArray.unshift({
-                    label: "Overall",
-                    backgroundColor: "black",
-                    borderColor: "black",
-                    data: [..._.unzip(lineChartDatasetArray.map(eachLineChartDataset => eachLineChartDataset
-                        .data)).map(eachDayArray => eachDayArray.reduce((a, b) => a + b, 0))],
-                    fill: false,
-                    lineTension: 0,
-                    cubicInterpolationMode: 'linear'
-                });
-                return {
-                    dateLabels,
-                    lineChartDatasetArray
-                };
             },
             createLineChart(lineChartId) {
                 const ctx = document.getElementById(lineChartId);
@@ -133,92 +83,10 @@
                         datasets: [...lineChartDatasetArray]
                     },
 
-                    options: {
-                        onClick: function (event, activeElements) {
-                            console.log("new feature to be added here");
-                        },
-                        scales: {
-                            xAxes: [{
-                                type: 'time',
-                                distribution: 'series'
-                            }],
-                            yAxes: [{
-                                ticks: {
-                                    callback: function (value, index, values) {
-                                        return new Intl.NumberFormat('en-US').format(value);
-                                    },
-                                    beginAtZero: true
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: "S$"
-                                }
-                            }]
-                        },
-                        tooltips: {
-                            callbacks: {
-                                label: function (tooltipItem, data) {
-                                    let label = data.datasets[tooltipItem.datasetIndex].label +
-                                        ": S$" +
-                                        new Intl.NumberFormat('en-US').format(tooltipItem.value) || '';
-                                    return label;
-                                },
-                                title: function (tooltipItem, data) {
-                                    const options = {
-                                        weekday: 'long',
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    };
-                                    return new Date(tooltipItem[0].label).toLocaleDateString('en-GB',
-                                        options);
-                                }
-                            }
-                        }
-                    }
+                    options: lineChartOptions
                 });
             },
-            createPieChart(chartId) {
-                const ctx = document.getElementById(chartId);
-                const calculatedDataForChart = this.getChartData(this.expenses);
-                this.pieChartObject = new Chart(ctx, {
-                    type: 'pie',
-                    data: calculatedDataForChart.data,
-                    options: {
-                        responsive: true,
-                        lineTension: 1,
-                        onClick: (evt, item) => {
-                            if (item.length > 0) {
-                                const itemIndex = item
-                                    .pop()
-                                    ._index;
-                                const categoricalFilter = eachExpense => eachExpense.category === this
-                                    .categoriesArray[itemIndex] && (
-                                        this.pieChartMonth == null ||
-                                        eachExpense
-                                        .expenseDate
-                                        .getMonth() === this
-                                        .pieChartMonth
-                                        .getMonth());
-                                this.clickedExpenses = this
-                                    .expenses
-                                    .filter(categoricalFilter);
-                            }
-                        },
-                        tooltips: {
-                            callbacks: {
-                                label: function (tooltipItem, data) {
-                                    let label = data.labels[tooltipItem.index] +
-                                        ": S$" +
-                                        new Intl.NumberFormat('en-US').format(data.datasets[tooltipItem
-                                            .datasetIndex].data[tooltipItem.index]) || '';
-                                    return label;
-                                }
-                            }
-                        }
-                    }
-                });
-            },
+            
             updatePieChart(chart, expensesArray) {
                 if (this.pieChartObject) {
                     const newDataObject = this.getChartData(expensesArray);
@@ -250,7 +118,21 @@
             changeLineMonth(month) {
                 this.updateLineChart(this.lineChartObject);
             },
-
+            addExpense(expense) {
+                expense.expenseDateString = format(expense.expenseDate, 'yyyy-MM-dd');
+                this.expenses.push(expense);
+                localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses))
+                this.updatePieChart(this.pieChartObject, this.expenses);
+                this.updateLineChart(this.lineChartObject, this.expenses);
+            },
+            addRandomExpenses(randomExpenses) {
+                this
+                    .expenses
+                    .push(...randomExpenses);
+                localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses));
+                this.updatePieChart(this.pieChartObject, this.expenses);
+                this.updateLineChart(this.lineChartObject, this.expenses);
+            },
             getChartData(expensesArrayInput) {
                 const monthlyExpenseFilter = (eachExpense) => {
                     return eachExpense
@@ -259,7 +141,6 @@
                         .pieChartMonth
                         .getMonth();
                 }
-                console.log(this.pieChartMonth);
                 const expensesArray = this.pieChartMonth ? expensesArrayInput.filter(monthlyExpenseFilter) : [...
                     expensesArrayInput
                 ];
@@ -318,34 +199,124 @@
 
                 return dataForChart;
             },
-            addExpense(expense) {
-                expense.expenseDateString = format(expense.expenseDate, 'yyyy-MM-dd');
-                this.expenses.push(expense);
-                localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses))
-                this.updatePieChart(this.pieChartObject, this.expenses);
-                this.updateLineChart(this.lineChartObject, this.expenses);
+            createPieChart(chartId) {
+                const ctx = document.getElementById(chartId);
+                const calculatedDataForChart = this.getChartData(this.expenses);
+                this.pieChartObject = new Chart(ctx, {
+                    type: 'pie',
+                    data: calculatedDataForChart.data,
+                    options: {
+                        responsive: true,
+                        lineTension: 1,
+                        onClick: (evt, item) => {
+                            if (item.length > 0) {
+                                const itemIndex = item
+                                    .pop()
+                                    ._index;
+                                const categoricalFilter = eachExpense => eachExpense.category === this
+                                    .categoriesArray[itemIndex] && (
+                                        this.pieChartMonth == null ||
+                                        eachExpense
+                                        .expenseDate
+                                        .getMonth() === this
+                                        .pieChartMonth
+                                        .getMonth());
+                                this.clickedExpenses = this
+                                    .expenses
+                                    .filter(categoricalFilter);
+                            }
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    let label = data.labels[tooltipItem.index] +
+                                        ": S$" +
+                                        new Intl.NumberFormat('en-US').format(data.datasets[tooltipItem
+                                            .datasetIndex].data[tooltipItem.index]) || '';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                });
             },
-            addRandomExpenses(randomExpenses) {
-                this
-                    .expenses
-                    .push(...randomExpenses);
-                localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses));
-                this.updatePieChart(this.pieChartObject, this.expenses);
-                this.updateLineChart(this.lineChartObject, this.expenses);
-            }
-        },
-        data() {
-            return {
-                expenses: [],
-                clickedExpenses: [],
-                pieChartObject: null,
-                categoriesArray: [],
-                pieChartMonth: null,
-                lineChartObject: null,
-                globalColors: [],
-                lineChartMonth: null
-            }
+            getLineChartData() {
+                let expenseDates;
+                if (this.lineChartMonth) {
+                    expenseDates = [];
+                    let newExpenseDate = new Date(this.lineChartMonth.getTime());
+                    while (this.lineChartMonth.getMonth() === newExpenseDate.getMonth()) {
+                        expenseDates.push(new Date(newExpenseDate.getTime()))
+                        newExpenseDate.setDate(newExpenseDate.getDate() + 1);
+                    }
+                } else {
+                    expenseDates = this.expenses.map(eachExpense => eachExpense.expenseDate);
+                }
+
+                let minimumDate = _.min(expenseDates);
+                let maximumDate = _.max(expenseDates);
+                let getDaysArray = (start, end) => {
+                    let arr = [];
+                    for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+                        arr.push(new Date(dt));
+                    }
+                    return arr;
+                };
+                let dateLabels = getDaysArray(minimumDate, maximumDate);
+
+                
+
+                // let categoricalExpenses = [];
+                let lineChartDatasetArray = [];
+                this.categoriesArray.forEach((eachCategory, catIndex) => {
+                    
+                    let expensesForDates = [];
+                    dateLabels.forEach(eachDate => {
+                        let dateAndCategoryFilter = eachExpense => {
+                            return eachExpense.category === eachCategory && this.compareDateWithoutTime(eachExpense.expenseDate,eachDate);
+                        }
+                        let dateAndCategoryExpenseReducer = (initial, newExpense) => (initial +
+                            newExpense.amountValue);
+                        let filteredExpenses = this.expenses.filter(dateAndCategoryFilter);
+                        // const sum = filteredExpenses.reduce(dateAndCategoryExpenseReducer,0);
+                        let sum = 0;
+                        filteredExpenses.forEach(eachExpense => {
+                            sum+=eachExpense.amountValue
+                        });
+                        // console.log(sum);
+                            // console.log(newExpense);
+                        expensesForDates.push(sum);
+                    });
+                    lineChartDatasetArray.push({
+                        label: eachCategory,
+                        backgroundColor: this.globalColors[catIndex],
+                        borderColor: this.globalColors[catIndex],
+                        data: [...expensesForDates],
+                        fill: false,
+                        lineTension: 0,
+                        cubicInterpolationMode: 'linear',
+                        hidden: true
+                    });
+
+                });
+                // const randomOverallColor = randomColor();
+                lineChartDatasetArray.unshift({
+                    label: "Overall",
+                    backgroundColor: "black",
+                    borderColor: "black",
+                    data: [..._.unzip(lineChartDatasetArray.map(eachLineChartDataset => eachLineChartDataset
+                        .data)).map(eachDayArray => eachDayArray.reduce((a, b) => a + b, 0))],
+                    fill: false,
+                    lineTension: 0,
+                    cubicInterpolationMode: 'linear'
+                });
+                return {
+                    dateLabels,
+                    lineChartDatasetArray
+                };
+            },
         }
+        
     }
 </script>
 

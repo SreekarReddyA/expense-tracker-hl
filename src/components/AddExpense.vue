@@ -60,6 +60,7 @@
                 currency: 'SGD',
                 category: 'Food',
                 title: '',
+                id: uuid(),
                 expenseDate: new Date(),
                 isComponentModalActive: false
             }
@@ -71,7 +72,8 @@
                     category: this.category,
                     title: this.title,
                     expenseDate: this.expenseDate,
-                    amountValue: this.amountValue
+                    amountValue: this.amountValue,
+                    id: this.id
                 });
 
                 // restore app state

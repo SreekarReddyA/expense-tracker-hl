@@ -10,7 +10,7 @@
     import _ from 'underscore';
     import randomColor from 'randomcolor';
     import ExpensesTable from './components/ExpensesTable';
-    import {lineChartOptions} from './services/chartServices';
+    import {lineChartOptions, getExpensesArrayForPieChart, getExpensesByCategory, addColorsToPieChart, getDatesForLineChart, pieChartTooltips} from './services/chartServices';
     import {compareDateWithoutTime} from './services/generalServices';
 
     export default {
@@ -130,16 +130,7 @@
                 this.updateLineChart(this.lineChartObject, this.expenses);
             },
             getPieChartData(expensesArrayInput) {
-                const monthlyExpenseFilter = (eachExpense) => {
-                    return eachExpense
-                        .expenseDate
-                        .getMonth() === this
-                        .pieChartMonth
-                        .getMonth();
-                }
-                const expensesArray = this.pieChartMonth ? expensesArrayInput.filter(monthlyExpenseFilter) : [...
-                    expensesArrayInput
-                ];
+                const expensesArray = getExpensesArrayForPieChart(expensesArrayInput, this.pieChartMonth);
                 let dataForChart = {};
                 dataForChart.data = {};
                 dataForChart.data.datasets = [];
@@ -153,45 +144,13 @@
                 let expenseDataset = {};
                 expenseDataset.label = "Expenses by category";
                 // group expenses by category
-                const expensesByCategory = this
-                    .categoriesArray
-                    .map(eachCategory => {
-                        let categoricalExpensesArray = expensesArray.filter(eachExpense => eachExpense.category ===
-                            eachCategory);
-                        const totalExpenseReducer = (totalCatExpense, currentExpense) => totalCatExpense +
-                            currentExpense.amountValue;
-                        return {
-                            category: eachCategory,
-                            expenses: categoricalExpensesArray,
-                            totalCategoryExpense: categoricalExpensesArray.reduce(totalExpenseReducer, 0)
-                        }
-                    });
+                const expensesByCategory = getExpensesByCategory(this.categoriesArray, expensesArray);
 
-                dataForChart
-                    .data
-                    .datasets
-                    .push(expenseDataset);
+                dataForChart.data.datasets.push(expenseDataset);
 
                 expenseDataset.data = expensesByCategory.map(eachCatExpense => eachCatExpense.totalCategoryExpense);
-                if (this.pieChartObject) {
-                    if (this.pieChartObject.data.datasets) {
-                        const newColorsArray = [...this.pieChartObject.data.datasets[0].backgroundColor];
-                        newColorsArray.push(...randomColor({
-                            count: this.categoriesArray.length - newColorsArray.length
-                        }));
-                        expenseDataset.backgroundColor = [...newColorsArray];
-                    } else {
-                        expenseDataset.backgroundColor = randomColor({
-                            count: this.categoriesArray.length
-                        });
-                    }
-                } else {
-                    expenseDataset.backgroundColor = randomColor({
-                        count: this.categoriesArray.length
-                    });
-                }
 
-                this.globalColors = [...expenseDataset.backgroundColor];
+                addColorsToPieChart(this.pieChartObject, this.categoriesArray, this.globalColors, expenseDataset);
 
                 return dataForChart;
             },
@@ -222,45 +181,13 @@
                                     .filter(categoricalFilter);
                             }
                         },
-                        tooltips: {
-                            callbacks: {
-                                label: function (tooltipItem, data) {
-                                    let label = data.labels[tooltipItem.index] +
-                                        ": S$" +
-                                        new Intl.NumberFormat('en-US').format(data.datasets[tooltipItem
-                                            .datasetIndex].data[tooltipItem.index]) || '';
-                                    return label;
-                                }
-                            }
-                        }
+                        tooltips: pieChartTooltips
                     }
                 });
             },
             getLineChartData() {
-                let expenseDates;
-                if (this.lineChartMonth) {
-                    expenseDates = [];
-                    let newExpenseDate = new Date(this.lineChartMonth.getTime());
-                    while (this.lineChartMonth.getMonth() === newExpenseDate.getMonth()) {
-                        expenseDates.push(new Date(newExpenseDate.getTime()))
-                        newExpenseDate.setDate(newExpenseDate.getDate() + 1);
-                    }
-                } else {
-                    expenseDates = this.expenses.map(eachExpense => eachExpense.expenseDate);
-                }
-
-                let minimumDate = _.min(expenseDates);
-                let maximumDate = _.max(expenseDates);
-                let getDaysArray = (start, end) => {
-                    let arr = [];
-                    for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-                        arr.push(new Date(dt));
-                    }
-                    return arr;
-                };
-                let dateLabels = getDaysArray(minimumDate, maximumDate);
-
                 
+                let dateLabels = getDatesForLineChart(this.lineChartMonth, this.expenses);
 
                 // let categoricalExpenses = [];
                 let lineChartDatasetArray = [];

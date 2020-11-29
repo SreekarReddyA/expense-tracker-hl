@@ -6,16 +6,16 @@
     <div class="columns">
         <div class="column">
             <div class="columns card" style="margin: 2%">
-                <div class="column is-one-half" style="text-align: center">
+                <div class="column is-one-half">
                     <AddExpense v-on:add-expense="addExpense" />
                 </div>
-                <div class="column is-one-half" style="text-align: center">
+                <div class="column is-one-half">
                     <GenerateRandomExpenses v-on:add-random-expenses="addRandomExpenses" />
                 </div>
             </div>
-            <div v-show="expenses.length > 0"  class="card" style="margin-left: 2%; margin-right: 2%; padding: 3%">
-                <b-table default-sort="expenseDate" v-if="expenses.length > 0" :show-detail-icon="false" per-page="10" detailed pagination-rounded
-                    :data="expenses" v-on:cellclick="deleteExpense" paginated>
+            <div v-show="expenses.length > 0" class="card" style="margin-left: 2%; margin-right: 2%; padding: 3%">
+                <b-table default-sort="expenseDate" v-if="expenses.length > 0" :show-detail-icon="false" per-page="10"
+                    detailed pagination-rounded :data="expenses" v-on:cellclick="deleteExpense" paginated>
                     <b-table-column label="Expense" field="title" sortable v-slot="props">
                         <span>
 
@@ -27,10 +27,10 @@
                             {{props.row.category}}
                         </span>
                     </b-table-column>
-                    <b-table-column label="Amount" field="amountValue" sortable v-slot="props">
-                        <span>
-                            {{props.row.amountValue}}
-                        </span>
+                    <b-table-column label="Amount (S$)" field="amountValue" sortable v-slot="props">
+                        <div style="text-align: right"><span>
+                                {{new Intl.NumberFormat('en-US').format(props.row.amountValue)}}
+                            </span></div>
                     </b-table-column>
                     <b-table-column label="Date" field="expenseDateString" sortable v-slot="props">
                         <span>
@@ -45,20 +45,44 @@
 
                 </b-table>
             </div>
-            <div class="card" v-show="expenses.length > 0" style="margin-left: 2%; margin-right: 2%; margin-top: 2%; padding: 3%">
-                <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
-                    <b-datepicker v-if="expenses.length > 0" v-model="lineChartMonth" v-on:change-month="changeLineMonth"
-                        type="month" icon="calendar-today" trap-focus></b-datepicker>
-                </b-field>
+            <div class="card" v-show="expenses.length > 0"
+                style="margin-left: 2%; margin-right: 2%; margin-top: 2%; padding: 3%">
+                <div class="columns">
+                    <div class="column is-three-quarters">
+                        <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
+                            <b-datepicker v-if="expenses.length > 0" v-model="lineChartMonth"
+                                v-on:change-month="changeLineMonth" type="month" icon="calendar-today" trap-focus>
+                            </b-datepicker>
+                        </b-field>
+                    </div>
+                    <div class="column is-one-quarter">
+                        <b-button v-on:click="clearLineChartMonth">
+                        <b-icon icon="close" 
+                        size="is-small" >
+                        </b-icon>
+                        </b-button>
+                    </div>
+                </div>
                 <canvas id="line-chart"></canvas>
             </div>
         </div>
         <div class="column">
             <div v-show="expenses.length > 0" class="card" style="padding: 3%; margin-top: 2%">
-                <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
-                    <b-datepicker v-if="expenses.length > 0" v-model="pieChartMonth" v-on:change-month="changePieMonth"
-                        type="month" icon="calendar-today" trap-focus></b-datepicker>
-                </b-field>
+                <div class="columns">
+                    <div class="column is-three-quarters">
+                        <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
+                            <b-datepicker v-if="expenses.length > 0" v-model="pieChartMonth" v-on:change-month="changePieMonth"
+                                type="month" icon="calendar-today" trap-focus></b-datepicker>
+                        </b-field>
+                    </div>
+                    <div class="column is-one-quarter">
+                        <b-button v-on:click="clearPieChartMonth">
+                        <b-icon icon="close" 
+                        size="is-small" >
+                        </b-icon>
+                        </b-button>
+                    </div>
+                </div>
                 <canvas v-show="expenses.length > 0" id="pie-chart"></canvas>
                 <b-table default-sort="expenseDate" v-if="clickedExpenses.length > 0" :data="clickedExpenses"
                     per-page="5" detailed pagination-rounded :show-detail-icon="false" v-on:cellclick="deleteExpense"
@@ -69,15 +93,16 @@
                             {{props.row.title}}
                         </span>
                     </b-table-column>
-                    <b-table-column label="Category" field="category"  sortable v-slot="props">
+                    <b-table-column label="Category" field="category" sortable v-slot="props">
                         <span>
                             {{props.row.category}}
                         </span>
                     </b-table-column>
-                    <b-table-column label="Amount" field="amountValue" sortable v-slot="props">
-                        <span>
-                            {{props.row.amountValue}}
-                        </span>
+                    <b-table-column label="Amount (S$)" field="amountValue" sortable v-slot="props">
+                        <div style="text-align: right"><span>
+                                {{new Intl.NumberFormat('en-US').format(props.row.amountValue)}}
+                            </span>
+                        </div>
                     </b-table-column>
                     <b-table-column label="Date" sortable field="expenseDate" v-slot="props">
                         <span>
@@ -127,8 +152,6 @@
                     this.expenses[expenseIndex].expenseDate = new Date(eachExpense.expenseDate);
                 });
             }
-            // console.log('in created');
-            // console.log(this.expenses);
         },
         mounted() {
             if (this.expenses.length > 0) {
@@ -137,6 +160,14 @@
             }
         },
         methods: {
+            clearPieChartMonth(clickEvent) {
+                this.pieChartMonth = null;
+                this.changePieMonth(this.pieChartMonth);
+            },
+            clearLineChartMonth(clickEvent) {
+                this.lineChartMonth = null;
+                this.changeLineMonth(this.lineChartMonth);
+            },
             deleteExpense(row, column, rowIndex, columnIndex) {
                 if ((column.field == 'id')) {
                     const expenseRemover = eachExpense => eachExpense.id !== row.id;
@@ -150,7 +181,7 @@
                 let expenseDates;
                 if (this.lineChartMonth) {
                     expenseDates = [];
-                    let newExpenseDate = new Date (this.lineChartMonth.getTime());
+                    let newExpenseDate = new Date(this.lineChartMonth.getTime());
                     while (this.lineChartMonth.getMonth() === newExpenseDate.getMonth()) {
                         expenseDates.push(new Date(newExpenseDate.getTime()))
                         newExpenseDate.setDate(newExpenseDate.getDate() + 1);
@@ -158,58 +189,78 @@
                 } else {
                     expenseDates = this.expenses.map(eachExpense => eachExpense.expenseDate);
                 }
-                
+
                 let minimumDate = _.min(expenseDates);
                 let maximumDate = _.max(expenseDates);
                 let getDaysArray = (start, end) => {
-                    let arr=[];
-                    for(let dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
+                    let arr = [];
+                    for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
                         arr.push(new Date(dt));
                     }
                     return arr;
                 };
                 let dateLabels = getDaysArray(minimumDate, maximumDate);
-                
+
                 // let categoricalExpenses = [];
                 let lineChartDatasetArray = [];
-                
+
                 this.categoriesArray.forEach((eachCategory, catIndex) => {
                     let expensesForDates = [];
                     dateLabels.forEach(eachDate => {
                         let dateAndCategoryFilter = eachExpense => {
-                            return eachExpense.category === eachCategory && eachExpense.expenseDate.getTime() === eachDate.getTime();
+                            return eachExpense.category === eachCategory && eachExpense.expenseDate
+                                .getTime() === eachDate.getTime();
                         }
-                        let dateAndCategoryExpenseReducer = (initial, newExpense) => (initial + newExpense.amountValue);
+                        let dateAndCategoryExpenseReducer = (initial, newExpense) => (initial +
+                            newExpense.amountValue);
                         let filteredExpenses = this.expenses.filter(dateAndCategoryFilter);
-                        expensesForDates.push(filteredExpenses.reduce(dateAndCategoryExpenseReducer, 0));
+                        expensesForDates.push(filteredExpenses.reduce(dateAndCategoryExpenseReducer,
+                        0));
                     });
                     lineChartDatasetArray.push({
-                            label: eachCategory,
-                            backgroundColor: this.globalColors[catIndex],
-                            borderColor: this.globalColors[catIndex],
-                            data: [...expensesForDates],
-                            fill: false,
-                            lineTension: 0,
-                            cubicInterpolationMode: 'linear'
-                        });
+                        label: eachCategory,
+                        backgroundColor: this.globalColors[catIndex],
+                        borderColor: this.globalColors[catIndex],
+                        data: [...expensesForDates],
+                        fill: false,
+                        lineTension: 0,
+                        cubicInterpolationMode: 'linear',
+                        hidden: true
+                    });
 
                 });
-                return {dateLabels, lineChartDatasetArray};
+                // const randomOverallColor = randomColor();
+                lineChartDatasetArray.unshift({
+                    label: "Overall",
+                    backgroundColor: "black",
+                    borderColor: "black",
+                    data: [..._.unzip(lineChartDatasetArray.map(eachLineChartDataset => eachLineChartDataset
+                        .data)).map(eachDayArray => eachDayArray.reduce((a, b) => a + b, 0))],
+                    fill: false,
+                    lineTension: 0,
+                    cubicInterpolationMode: 'linear'
+                });
+                return {
+                    dateLabels,
+                    lineChartDatasetArray
+                };
             },
             createLineChart(lineChartId) {
                 const ctx = document.getElementById(lineChartId);
-                const {dateLabels, lineChartDatasetArray} = this.getLineChartData()
+                const {
+                    dateLabels,
+                    lineChartDatasetArray
+                } = this.getLineChartData()
                 this.lineChartObject = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: [...dateLabels],
                         datasets: [...lineChartDatasetArray]
                     },
-                    
+
                     options: {
-                        onClick: function(event, activeElements) {
-                            console.log(event);
-                            console.log(activeElements); 
+                        onClick: function (event, activeElements) {
+                            console.log("new feature to be added here");
                         },
                         scales: {
                             xAxes: [{
@@ -218,7 +269,7 @@
                             }],
                             yAxes: [{
                                 ticks: {
-                                    callback: function(value, index, values) {
+                                    callback: function (value, index, values) {
                                         return new Intl.NumberFormat('en-US').format(value);
                                     },
                                     beginAtZero: true
@@ -231,15 +282,21 @@
                         },
                         tooltips: {
                             callbacks: {
-                                label: function(tooltipItem, data) {
-                                    let label = data.datasets[tooltipItem.datasetIndex].label 
-                                        + ": S$" 
-                                        + new Intl.NumberFormat('en-US').format(tooltipItem.value) || '';
+                                label: function (tooltipItem, data) {
+                                    let label = data.datasets[tooltipItem.datasetIndex].label +
+                                        ": S$" +
+                                        new Intl.NumberFormat('en-US').format(tooltipItem.value) || '';
                                     return label;
                                 },
-                                title: function(tooltipItem, data) {
-                                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                                    return new Date(tooltipItem[0].label).toLocaleDateString('en-GB', options);
+                                title: function (tooltipItem, data) {
+                                    const options = {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    };
+                                    return new Date(tooltipItem[0].label).toLocaleDateString('en-GB',
+                                        options);
                                 }
                             }
                         }
@@ -264,10 +321,10 @@
                                     .categoriesArray[itemIndex] && (
                                         this.pieChartMonth == null ||
                                         eachExpense
-                                    .expenseDate
-                                    .getMonth() === this
-                                    .pieChartMonth
-                                    .getMonth());
+                                        .expenseDate
+                                        .getMonth() === this
+                                        .pieChartMonth
+                                        .getMonth());
                                 this.clickedExpenses = this
                                     .expenses
                                     .filter(categoricalFilter);
@@ -275,10 +332,11 @@
                         },
                         tooltips: {
                             callbacks: {
-                                label: function(tooltipItem, data) {
-                                    let label = data.labels[tooltipItem.index] 
-                                        + ": S$" 
-                                        + new Intl.NumberFormat('en-US').format(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]) || '';
+                                label: function (tooltipItem, data) {
+                                    let label = data.labels[tooltipItem.index] +
+                                        ": S$" +
+                                        new Intl.NumberFormat('en-US').format(data.datasets[tooltipItem
+                                            .datasetIndex].data[tooltipItem.index]) || '';
                                     return label;
                                 }
                             }
@@ -294,28 +352,30 @@
                     chart.update();
                 } else {
                     this.createPieChart('pie-chart', this.pieChartData);
-                    
+
                 }
             },
             updateLineChart(chart) {
                 if (this.lineChartObject) {
-                    const {dateLabels, lineChartDatasetArray} = this.getLineChartData();
+                    const {
+                        dateLabels,
+                        lineChartDatasetArray
+                    } = this.getLineChartData();
                     chart.data.datasets = [...lineChartDatasetArray];
                     chart.data.labels = [...dateLabels];
                     chart.update();
                 } else {
-                    this.createLineChart('line-chart');   
+                    this.createLineChart('line-chart');
                 }
             },
             changePieMonth(month) {
-                // console.log(month);
                 this.updatePieChart(this.pieChartObject, this.expenses);
                 this.clickedExpenses = [];
             },
             changeLineMonth(month) {
                 this.updateLineChart(this.lineChartObject);
             },
-            
+
             getChartData(expensesArrayInput) {
                 const monthlyExpenseFilter = (eachExpense) => {
                     return eachExpense
@@ -324,7 +384,10 @@
                         .pieChartMonth
                         .getMonth();
                 }
-                const expensesArray = this.pieChartMonth ? expensesArrayInput.filter(monthlyExpenseFilter) : [...expensesArrayInput];
+                console.log(this.pieChartMonth);
+                const expensesArray = this.pieChartMonth ? expensesArrayInput.filter(monthlyExpenseFilter) : [...
+                    expensesArrayInput
+                ];
                 let dataForChart = {};
                 dataForChart.data = {};
                 dataForChart.data.datasets = [];
@@ -391,7 +454,7 @@
                 this
                     .expenses
                     .push(...randomExpenses);
-                    localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses));
+                localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses));
                 this.updatePieChart(this.pieChartObject, this.expenses);
                 this.updateLineChart(this.lineChartObject, this.expenses);
             }

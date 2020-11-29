@@ -8,9 +8,10 @@
             aria-modal>
             <div class="modal-card" style="width: auto" >
                 <header class="modal-card-head">
-                    <p class="modal-card-title">Random expense generator</p>
+                    <p class="modal-card-title">Random expense generator (for testing only)</p>
                 </header>
                 <section class="modal-card-body">
+                    <p>This random expense generator is used to demo visual elements (pie charts, line charts, tables) by using random values for each expense generated. THIS IS FOR TESTING/DEMO ONLY! Forgive the absurdity of using randomWordGenerator for expense titles</p>
                     <ul>
                         <b-field label="Number of expenses">
                             <b-numberinput v-model="number" :step="1" :min="1"></b-numberinput>

@@ -1,43 +1,11 @@
-<template>
-    <div class="columns">
-        <div class="column">
-            <div class="columns card" style="margin: 2%">
-                <div class="column is-one-half">
-                    <AddExpense v-on:add-expense="addExpense" />
-                </div>
-                <div class="column is-one-half">
-                    <GenerateRandomExpenses v-on:add-random-expenses="addRandomExpenses" />
-                </div>
-            </div>
-            <div v-show="expenses.length > 0" class="card" style="margin-left: 2%; margin-right: 2%; padding: 3%">
-                <ExpensesTable v-bind:expenses="expenses" v-bind:deleteExpense="deleteExpense"/>
-            </div>
-            <div class="card" v-show="expenses.length > 0"
-                style="margin-left: 2%; margin-right: 2%; margin-top: 2%; padding: 3%">
-                <MonthPicker v-bind:expenses="expenses" v-bind:month="lineChartMonth" v-bind:changeMonth="changeLineMonth" 
-                    v-bind:clearMonth="clearLineChartMonth"/>
-                <canvas id="line-chart"></canvas>
-            </div>
-        </div>
-        <div class="column">
-            <div v-show="expenses.length > 0" class="card" style="padding: 3%; margin-top: 2%">
-                <MonthPicker v-bind:expenses="expenses" v-bind:month="pieChartMonth" v-bind:changeMonth="changePieMonth" 
-                    v-bind:clearMonth="clearPieChartMonth"/>
-                <canvas v-show="expenses.length > 0" id="pie-chart"></canvas>
-                <ExpensesTable v-bind:expenses="clickedExpenses" v-bind:deleteExpense="deleteExpense"/>
-            </div>
-        </div>
-    </div>
-</template>
+<template src="./AppTemplate.html"></template>
 
 <script>
     import AddExpense from './components/AddExpense.vue';
     import '@mdi/font/css/materialdesignicons.css';
     import 'vue-good-table/dist/vue-good-table.css';
-    import MonthPicker from './components/MonthPicker';
     import {format} from 'date-fns';
     import GenerateRandomExpenses from './components/GenerateRandomExpenses';
-    import pieChartData from './chart-data.js';
     import Chart from 'chart.js';
     import _ from 'underscore';
     import randomColor from 'randomcolor';
@@ -47,7 +15,6 @@
         name: 'App',
         components: {
             AddExpense,
-            MonthPicker,
             ExpensesTable,
             GenerateRandomExpenses
         },
@@ -63,7 +30,7 @@
         },
         mounted() {
             if (this.expenses.length > 0) {
-                this.createPieChart('pie-chart', this.pieChartData);
+                this.createPieChart('pie-chart');
                 this.createLineChart('line-chart');
             }
         },
@@ -211,11 +178,11 @@
                     }
                 });
             },
-            createPieChart(chartId, chartData) {
+            createPieChart(chartId) {
                 const ctx = document.getElementById(chartId);
                 const calculatedDataForChart = this.getChartData(this.expenses);
                 this.pieChartObject = new Chart(ctx, {
-                    type: chartData.type,
+                    type: 'pie',
                     data: calculatedDataForChart.data,
                     options: {
                         responsive: true,
@@ -259,7 +226,7 @@
                     chart.data.labels = newDataObject.data.labels;
                     chart.update();
                 } else {
-                    this.createPieChart('pie-chart', this.pieChartData);
+                    this.createPieChart('pie-chart');
 
                 }
             },
@@ -371,7 +338,6 @@
             return {
                 expenses: [],
                 clickedExpenses: [],
-                pieChartData: pieChartData,
                 pieChartObject: null,
                 categoriesArray: [],
                 pieChartMonth: null,

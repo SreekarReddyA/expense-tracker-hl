@@ -1,0 +1,57 @@
+<div class="columns">
+    <div class="column">
+        <div class="columns card" style="margin: 2%">
+            <div class="column is-one-half">
+                <AddExpense v-on:add-expense="addExpense" />
+            </div>
+            <div class="column is-one-half">
+                <GenerateRandomExpenses v-on:add-random-expenses="addRandomExpenses" />
+            </div>
+        </div>
+        <div v-show="expenses.length > 0" class="card" style="margin-left: 2%; margin-right: 2%; padding: 3%">
+            <ExpensesTable v-bind:expenses="expenses" v-bind:deleteExpense="deleteExpense"/>
+        </div>
+        <div class="card" v-show="expenses.length > 0"
+            style="margin-left: 2%; margin-right: 2%; margin-top: 2%; padding: 3%">
+            <div class="columns">
+                <div class="column is-three-quarters">
+                    <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
+                        <b-datepicker v-if="expenses.length > 0" v-model="lineChartMonth"
+                            v-on:change-month="changeLineMonth" type="month" icon="calendar-today" trap-focus>
+                        </b-datepicker>
+                    </b-field>
+                </div>
+                <div class="column is-one-quarter">
+                    <b-button v-on:click="clearLineChartMonth">
+                    <b-icon icon="close" 
+                    size="is-small" >
+                    </b-icon>
+                    </b-button>
+                </div>
+            </div>
+            <canvas id="line-chart"></canvas>
+        </div>
+    </div>
+    <div class="column">
+        <div v-show="expenses.length > 0" class="card" style="padding: 3%; margin-top: 2%">
+            <div class="columns">
+                <div class="column is-three-quarters">
+                    <b-field v-if="expenses.length > 0" label="Month" label-position="on-border">
+                        <b-datepicker v-if="expenses.length > 0" v-model="pieChartMonth"
+                            v-on:change-month="changePieMonth" type="month" icon="calendar-today" trap-focus>
+                        </b-datepicker>
+                    </b-field>
+                </div>
+                <div class="column is-one-quarter">
+                    <b-button v-on:click="clearPieChartMonth">
+                    <b-icon icon="close" 
+                    size="is-small" >
+                    </b-icon>
+                    </b-button>
+                </div>
+            </div>
+            <canvas v-show="expenses.length > 0" id="pie-chart"></canvas>
+            <ExpensesTable v-bind:expenses="clickedExpenses" v-bind:deleteExpense="deleteExpense"/>
+        </div>
+    </div>
+</div>

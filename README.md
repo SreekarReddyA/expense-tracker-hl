@@ -14,6 +14,8 @@ Further optimisations certainly possible and will be worked on as this app is in
 
 You can access the app at http://18.139.205.206/ (do not use https! Site security has not been attended to, yet).
 
+For an impressive demo, consider using the random expense generator and generate 100 expenses. The random expense generator accepts a few parameters and generates random expenses. The charts are most interesting if there is appreciable volume of data.
+
 ## Project setup
 ```
 npm install

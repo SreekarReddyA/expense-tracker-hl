@@ -64,6 +64,7 @@
                     localStorage.setItem('tracker-expenses', JSON.stringify(this.expenses));
                     this.clickedExpenses = this.clickedExpenses.filter(expenseRemover);
                     this.updatePieChart(this.pieChartObject, this.expenses);
+                    this.updateLineChart(this.lineChartObject);
                 }
             },
             createLineChart(lineChartId) {

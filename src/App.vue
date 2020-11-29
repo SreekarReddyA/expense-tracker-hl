@@ -11,6 +11,7 @@
     import randomColor from 'randomcolor';
     import ExpensesTable from './components/ExpensesTable';
     import {lineChartOptions} from './services/chartServices';
+    import {compareDateWithoutTime} from './services/generalServices';
 
     export default {
         name: 'App',
@@ -52,11 +53,6 @@
                 this.pieChartMonth = null;
                 this.changePieMonth(this.pieChartMonth);
             },
-            compareDateWithoutTime(date1, date2) {
-                date1.setHours(0,0,0,0);
-                date2.setHours(0,0,0,0);
-                return date1.getTime() === date2.getTime();
-            },
             clearLineChartMonth(clickEvent) {
                 this.lineChartMonth = null;
                 this.changeLineMonth(this.lineChartMonth);
@@ -89,7 +85,7 @@
             
             updatePieChart(chart, expensesArray) {
                 if (this.pieChartObject) {
-                    const newDataObject = this.getChartData(expensesArray);
+                    const newDataObject = this.getPieChartData(expensesArray);
                     chart.data.datasets = newDataObject.data.datasets;
                     chart.data.labels = newDataObject.data.labels;
                     chart.update();
@@ -133,7 +129,7 @@
                 this.updatePieChart(this.pieChartObject, this.expenses);
                 this.updateLineChart(this.lineChartObject, this.expenses);
             },
-            getChartData(expensesArrayInput) {
+            getPieChartData(expensesArrayInput) {
                 const monthlyExpenseFilter = (eachExpense) => {
                     return eachExpense
                         .expenseDate
@@ -201,7 +197,7 @@
             },
             createPieChart(chartId) {
                 const ctx = document.getElementById(chartId);
-                const calculatedDataForChart = this.getChartData(this.expenses);
+                const calculatedDataForChart = this.getPieChartData(this.expenses);
                 this.pieChartObject = new Chart(ctx, {
                     type: 'pie',
                     data: calculatedDataForChart.data,
@@ -273,7 +269,7 @@
                     let expensesForDates = [];
                     dateLabels.forEach(eachDate => {
                         let dateAndCategoryFilter = eachExpense => {
-                            return eachExpense.category === eachCategory && this.compareDateWithoutTime(eachExpense.expenseDate,eachDate);
+                            return eachExpense.category === eachCategory && compareDateWithoutTime(eachExpense.expenseDate,eachDate);
                         }
                         let dateAndCategoryExpenseReducer = (initial, newExpense) => (initial +
                             newExpense.amountValue);
